@@ -2,11 +2,10 @@ import base64
 import copy
 import logging
 import os
-
 from salt.exceptions import SaltException, ZincTimeoutError
 from salt.utils import dictupdate
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def dictmerge(destination: dict | None, update: dict | None, clear_none=False: bool, merge_lists=False: bool) -> dict | None:
@@ -53,6 +52,25 @@ def dictmerge_deepcopy(destination: dict | None, update: dict | None, clear_none
     return destination_copy
 
 
+def get_colo_names(timeout=10: int, backup=True: bool) -> list[str]:
+    """
+    Gets colo names using systems
+    :param timeout (int)
+    :param backup (boolean)
+    """
+
+    try:
+        return __salt__["zinc.get_colo_names"](timeout=(timeout * 1000))
+    except ZincTimeoutError:
+        if backup:
+            return __salt__["provision_api.get_names"](type="colo", timeout=timeout)
+        else:
+            []
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+        return []
+
+
 def load_file_as_base64(path: str) -> bytes:
     """
     Read arbitrary file, and return its content as base64
@@ -66,23 +84,3 @@ def load_file_as_base64(path: str) -> bytes:
 
     with open(path, "rb") as f:
         return base64.b64encode(f.read())
-
-
-def get_colo_names(timeout=10: int, backup=True: bool) -> list[str]:
-    """
-    Gets colo names using systems
-
-    :param backup (boolean)
-    :param timeout (int)
-    """
-
-    try:
-        return __salt__["zinc.get_colo_names"](timeout=(timeout * 1000))
-    except ZincTimeoutError:
-        pass
-    except Exception as e:
-        log.error(f"An error occurred: {e}")
-        return []
-
-    if backup:
-        return __salt__["provision_api.get_names"](type="colo", timeout=timeout)
