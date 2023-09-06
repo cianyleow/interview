@@ -86,3 +86,5 @@ def get_colo_names(timeout=10: int, backup=True: bool) -> list[str]:
 
     if backup:
         return __salt__["provision_api.get_names"](type="colo", timeout=timeout)
+    else:
+        return []

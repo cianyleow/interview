@@ -122,6 +122,11 @@ def test_get_colo_names_timeout_from_zinc_falls_back_to_provision_api() -> None:
     with mock_server("provision_api", "get_names", 200, ["provision_api_colo"]):
         assert cfutils.get_colo_names() == ["provision_api_colo"]
 
+# Slow test due to the wait for a Zinc timeout (10s)
+@pytest.mark.slow
+def test_get_colo_names_timeout_from_zinc_with_no_backup() -> None:
+    assert cfutils.get_colo_names(backup = False) == []
+
 # Really slow test due to wait for both Zinc and Provision API timeout (20s)
 @pytest.mark.slow
 def test_get_colo_names_returns_error_on_backup_failure() -> None:
